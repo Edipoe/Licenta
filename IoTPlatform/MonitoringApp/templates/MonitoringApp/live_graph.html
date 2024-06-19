@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Medical IoT Platform</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'bootstrap.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'font-awesome.css' %}" />
+    <style>
+      body {
+        font-family: "Roboto", Arial, sans-serif;
+        background-color: #f8f9fa;
+        color: #495057;
+        margin: 0;
+        padding: 0;
+      }
+      .container-fluid {
+        padding: 0;
+      }
+      .sidebar {
+        height: 100%;
+        width: 250px;
+        position: fixed;
+        top: 0;
+        left: 0;
+        background-color: #343a40;
+        padding-top: 20px;
+      }
+      .sidebar a {
+        padding: 10px 15px;
+        text-decoration: none;
+        font-size: 18px;
+        color: #f8f9fa;
+        display: block;
+        transition: 0.3s;
+      }
+      .sidebar a:hover {
+        background-color: #495057;
+      }
+      .sidebar .active {
+        background-color: #007bff;
+      }
+      .main-content {
+        margin-left: 250px;
+        padding: 20px;
+      }
+      h1 {
+        color: #007bff;
+        margin-bottom: 20px;
+      }
+      .sensor-data {
+        margin-top: 20px;
+        padding: 20px;
+        background-color: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+      .sensor-value {
+        font-size: 3em;
+        font-weight: bold;
+        color: #007bff;
+        display: inline;
+      }
+      .sensor-unit {
+        font-size: 1.5em;
+        color: #007bff;
+        display: inline;
+      }
+      .sensor-label {
+        font-size: 1.2em;
+        font-weight: bold;
+        margin-top: 10px;
+        color: #007bff;
+      }
+      .alert-message {
+        font-size: 1.2em;
+        font-weight: bold;
+        margin-top: 5px;
+        /*text-align: center; */
+      }
+      .fall-detected {
+        color: #dc3545;
+      }
+      .nofall {
+        color: #28a745;
+      }
+      .chart-container {
+        margin-top: 30px;
+      }
+      .card {
+        background-color: #ffffff;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+      .card-header {
+        background-color: #007bff;
+        color: white;
+        padding: 10px;
+        border-radius: 6px 6px 0 0;
+      }
+      .card-body {
+        padding: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container-fluid">
+      <div class="sidebar">
+        <a href="#" class="active">Dashboard</a>
+
+        <a href="#">Istoric Alerte</a>
+      </div>
+
+      <div class="main-content">
+        <h1>IoT Platform Dashboard</h1>
+
+        <div class="row chart-container">
+          <div class="col-md-6">
+            <div class="card">
+              <div class="card-header">ECG</div>
+              <div class="card-body">
+                <div id="chartContainer1" style="height: 400px"></div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card">
+              <div class="card-header">Heart Rate</div>
+              <div class="card-body">
+                <div id="chartContainer2" style="height: 400px"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row chart-container">
+          <div class="col-md-6">
+            <div class="card">
+              <div class="card-header">SPO2 Levels</div>
+              <div class="card-body">
+                <div id="chartContainer3" style="height: 400px"></div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card">
+              <div class="card-header">Temperature</div>
+              <div class="card-body">
+                <div id="chartContainer4" style="height: 400px"></div>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-12">
+              <div class="card">
+                <div class="card-header">Sensor Data</div>
+                <div class="card-body sensor-data">
+                  <!--<div class="sensor-label">ECG</div>
+                  <div class="sensor-value" id="ecg_value">--</div>
+                  <div class="sensor-unit">mm</div>-->
+                  <div class="sensor-label">Heart Rate</div>
+                  <div class="sensor-value" id="heart_rate_value">--</div>
+                  <div class="sensor-unit">bpm</div>
+                  <div class="sensor-label">SPO2 Levels</div>
+                  <div class="sensor-value" id="spo2_value">--</div>
+                  <div class="sensor-unit">%</div>
+                  <div class="sensor-label">Temperature</div>
+                  <div class="sensor-value" id="temp_value">--</div>
+                  <div class="sensor-unit">°C</div>
+                  <div class="sensor-label">Accelerometer Data</div>
+
+                  <div class="alert-message" id="accelerometer_message">--</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="{% static 'jquery-3.3.1.min.js' %}"></script>
+    <script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+    <script>
+      $(document).ready(function () {
+        var dps1 = [];
+        var dps2 = [];
+        var dps3 = [];
+        let dps4 = [];
+
+        var updateInterval = 200;
+
+        var chart1 = new CanvasJS.Chart("chartContainer1", {
+          title: { text: "ECG" },
+          data: [{ type: "line", dataPoints: dps1 }],
+        });
+
+        var chart2 = new CanvasJS.Chart("chartContainer2", {
+          title: { text: "Heart Rate" },
+          data: [{ type: "line", dataPoints: dps2 }],
+          axisY: {
+            includeZero: true,
+            suffix: "bpm",
+          },
+        });
+
+        var chart3 = new CanvasJS.Chart("chartContainer3", {
+          title: { text: "SPO2 Levels" },
+          data: [{ type: "line", dataPoints: dps3 }],
+          axisY: {
+            includeZero: true,
+            suffix: "%",
+          },
+        });
+
+        let chart4 = new CanvasJS.Chart("chartContainer4", {
+          title: { text: "Temperature" },
+          axisY: {
+            title: "Temperature",
+            titleFontColor: "#4F81BC",
+            includeZero: true,
+            suffix: "°C",
+            crosshair: {
+              enabled: true,
+              snapToDataPoint: true,
+            },
+          },
+          axisX: {
+            crosshair: {
+              enabled: true,
+              snapToDataPoint: true,
+            },
+          },
+
+          data: [{ type: "area", dataPoints: dps4 }],
+        });
+
+        function updateChart(chart, dataPoints, newDataPoint) {
+          dataPoints.push(newDataPoint);
+          if (dataPoints.length > 300) {
+            dataPoints.shift();
+          }
+          chart.render();
+        }
+
+        function fetchSensorData() {
+          $.ajax({
+            type: "GET",
+            url: "{% url 'MonitoringApp:fetch_sensor_values_ajax' %}",
+            success: function (data) {
+              if (data.result) {
+                var sensorData = data.result;
+                var timestamp = new Date(sensorData.timestamp);
+
+                updateChart(chart1, dps1, {
+                  x: timestamp,
+                  y: sensorData.ecg_data,
+                });
+                updateChart(chart2, dps2, {
+                  x: timestamp,
+                  y: sensorData.heart_rate,
+                });
+                updateChart(chart3, dps3, {
+                  x: timestamp,
+                  y: sensorData.spo2_level,
+                });
+                updateChart(chart4, dps4, {
+                  x: timestamp,
+                  y: sensorData.temp,
+                });
+
+                // Display sensor data
+                $("#ecg_value").text(sensorData.ecg_data);
+                $("#heart_rate_value").text(sensorData.heart_rate);
+                $("#spo2_value").text(sensorData.spo2_level);
+                $("#temp_value").text(sensorData.temp);
+
+                // Display fall detection message
+                if (data.fall_detected) {
+                  $("#accelerometer_message")
+                    .text("Fall detected")
+                    .addClass("fall-detected")
+                    .removeClass("nofall");
+                  alert("Fall detected!!!");
+                } else {
+                  $("#accelerometer_message")
+                    .text("No fall detected")
+                    .addClass("nofall")
+                    .removeClass("fall-detected");
+                }
+                console.log(data.heart_rate);
+                // CAZURI RITM CARDIAC
+                // if (data.heart_rate < 40) {
+                //   alert(
+                //     "Ritmul cardiac: " +
+                //       data.heart_rate +
+                //       " bpm - scăzut (Bradicardie)!!"
+                //   );
+                // } else if (data.heart_rate >= 40 && data.heart_rate < 60) {
+                //   alert(
+                //     "Ritm cardiac scăzut: " +
+                //       data.heart_rate +
+                //       " bpm - Alertă pentru bradicardie moderată!!"
+                //   );
+                // } else if (data.heart_rate >= 60 && data.heart_rate <= 100) {
+                //   // Interval normal al ritmului cardiac
+                // } else if (data.heart_rate > 100 && data.heart_rate <= 140) {
+                //   alert(
+                //     "Ritmul cardiac ridicat: " +
+                //       data.heart_rate +
+                //       " bpm - Alertă pentru tahicardie."
+                //   );
+                // } else if (data.heart_rate > 140) {
+                //   alert(
+                //     "Ritmul cardiac foarte ridicat! Alertă pentru tahicardie severă. Ritm cardiac: " +
+                //       data.heart_rate +
+                //       " bpm"
+                //   );
+                // }
+              } else {
+                console.log("Error: Fara date de la senzori primite.");
+              }
+            },
+            error: function () {
+              console.log("Error: Failed to fetch sensor data.");
+            },
+          });
+        }
+
+        setInterval(fetchSensorData, updateInterval);
+      });
+    </script>
+  </body>
+</html>

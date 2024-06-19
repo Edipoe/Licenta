@@ -1,0 +1,42 @@
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #0067ac;
+  /* background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat; */
+}
+
+.login-container {
+  display: flex;
+  /* justify-content: center; */
+  align-items: center;
+  background-color: #e0e7e8;
+  border-radius: 3rem;
+
+  /* margin-right: 100px; */
+}
+.father {
+  background-color: #e0e7e8;
+  padding: 3rem;
+  border-radius: 2rem;
+  width: 60%;
+  height: 500px;
+  display: flex;
+  position: relative;
+}
+.img-medici {
+  position: absolute;
+  width: 28rem;
+  top: 10%;
+  right: 15%;
+}
+.reg-link {
+  text-decoration: none;
+}

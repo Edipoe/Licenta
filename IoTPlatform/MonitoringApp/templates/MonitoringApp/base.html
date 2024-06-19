@@ -1,0 +1,31 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>IOT PLATFORM</title>
+
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="{%static 'mainPage/style.css'%}"
+    />
+
+    <link
+      rel="stylesheet"
+      href="{% static 'node_modules/bootstrap/dist/css/bootstrap.min.css'%}"
+    />
+  </head>
+  <body>
+    {% block body%} {% endblock %}
+
+    <script
+      src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+      integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+      crossorigin="anonymous"
+    ></script>
+
+    <script src="https://unpkg.com/bootstrap-show-password@1.2.1/dist/bootstrap-show-password.min.js"></script>
+  </body>
+</html>
