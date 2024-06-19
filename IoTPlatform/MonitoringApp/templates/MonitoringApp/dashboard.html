@@ -1,8 +1,9 @@
-{% extends 'MonitoringApp/base.html'%} {% load static %} {% block body %}
 
+{% extends 'base.html' %}
+
+{% block content %}
 <h1>Istoric alerte</h1>
 <a class="btn btn-primary" href="{% url 'MonitoringApp:show_graph' %}"
-  >Real-time data from Sensor</a
->
+  >Real-time data from Sensor</a>
 
 {% endblock %}

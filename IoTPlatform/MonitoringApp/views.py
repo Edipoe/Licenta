@@ -5,7 +5,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import authenticate, login
 from django.views.decorators.csrf import csrf_exempt
-
+from django.contrib.auth.decorators import login_required
 import random
 from .models import Post, SensorData  # Importăm modelul SensorData
 
@@ -15,47 +15,49 @@ import sqlite3
 con = sqlite3.connect("sensor_data.db")
 con.execute("CREATE TABLE IF NOT EXISTS sensor_data(timestamp, sensor_name, ecg_data, spo2_level, heart_rate, temp, fall_detected)")
 
-def register(request):
-    if request.method == 'POST':
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save()  # Salvează utilizatorul în baza de date
-            username = form.cleaned_data.get('username')
-            password = form.cleaned_data.get('password1')  # Folosim 'password1' pentru a obține parola
-            user = authenticate(username=username, password=password)
-            if user is not None:
-                login(request, user)
-                return redirect('MonitoringApp/dashboard.html')
-    else:
-        form = UserCreationForm()
-    return render(request, 'MonitoringApp/register.html', {'form': form})
+#
+# def register(request):
+#     if request.method == 'POST':
+#         form = UserCreationForm(request.POST)
+#         if form.is_valid():
+#             user = form.save()  # Salvează utilizatorul în baza de date
+#             username = form.cleaned_data.get('username')
+#             password = form.cleaned_data.get('password1')  # Folosim 'password1' pentru a obține parola
+#             user = authenticate(username=username, password=password)
+#             if user is not None:
+#                 login(request, user)
+#                 return redirect('MonitoringApp/dashboard.html')
+#     else:
+#         form = UserCreationForm()
+#     return render(request, 'MonitoringApp/register.html', {'form': form})
+#
+#
+# def login_view(request):
+#     if request.user.is_authenticated:
+#         return redirect('MonitoringApp/dashboard.html')
+#
+#     if request.method == 'POST':
+#         form = AuthenticationForm(request, request.POST)
+#         if form.is_valid():
+#             user = form.get_user()
+#             login(request, user)
+#             return redirect('MonitoringApp/dashboard.html')
+#     else:
+#         form = AuthenticationForm()
+#     return render(request, 'MonitoringApp/login.html', {'form': form})
+#
+#
+# def register_view(request):
+#     posts = Post.objects.all()  # Obține toate articolele din baza de date
+#     return render(request, 'MonitoringApp/register.html', {'posts': posts})
 
-def login_view(request):
-    if request.user.is_authenticated:
-        return redirect('MonitoringApp/dashboard.html')
 
-    if request.method == 'POST':
-        form = AuthenticationForm(request, request.POST)
-        if form.is_valid():
-            user = form.get_user()
-            login(request, user)
-            return redirect('MonitoringApp/dashboard.html')
-    else:
-        form = AuthenticationForm()
-    return render(request, 'MonitoringApp/login.html', {'form': form})
-
-def register_view(request):
-    posts = Post.objects.all()  # Obține toate articolele din baza de date
-    return render(request, 'MonitoringApp/register.html', {'posts': posts})
-
+@login_required(login_url='user-login')
 def show_graph(request, template_name='MonitoringApp/live_graph.html'):
     return render(request, template_name)
 
 
-
-
-
-
+@login_required(login_url='user-login')
 def fetch_sensor_values_ajax(request):
     data = {}
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
@@ -116,6 +118,7 @@ def fetch_sensor_values_ajax(request):
 
     return JsonResponse(data)
 
+
 @csrf_exempt
 def post_sensor_values_ajax(request):
     try:
@@ -142,6 +145,6 @@ def post_sensor_values_ajax(request):
         return JsonResponse({"ok": False})
 
 
-
+@login_required(login_url='user-login')
 def show_dashbord(request, template_name='MonitoringApp/dashboard.html'):
     return render(request, template_name)
